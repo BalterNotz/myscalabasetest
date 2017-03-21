@@ -1,10 +1,10 @@
-package net.btnz.myscalabasetest;
+package net.btnz.scala.myscalabasetest;
 
 /**
  * Hello world!
  *
  */
-public class App 
+public class JavaApp
 {
     public static void main( String[] args )
     {

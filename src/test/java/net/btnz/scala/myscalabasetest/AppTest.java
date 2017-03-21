@@ -1,4 +1,4 @@
-package net.btnz.myscalabasetest;
+package net.btnz.scala.myscalabasetest;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
