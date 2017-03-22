@@ -314,7 +314,7 @@ Scala中的每一个值类型都有一个以下格式的类型。
         override def toString = "<function>"
     }
 
-###即存类型
+###3.2.10.即存类型
 
 语法：
 
@@ -336,3 +336,286 @@ T forSome {Q}的斯科伦化是一个类实例oT,o是[t'1/t1,...,t'n/tn]上的�
 3. 空的限定可以丢弃。例：T forSome {} 等价于 T
 4. 一个既类型T forSome {Q}，Q中包含一个子句type t[tps] >: L <: U等价于类型T' forSome {Q}，T'是将T中所有t的协变量替换为U并且将T中所有的t的逆变量替换为L的结果。
 
+在值上的既存量化
+
+既存类型的占位符语法
+
+语法：
+
+    WildcardType    ::= '_' TypeBounds
+
+###3.2.11.Predef中定义的原始类型
+
+每一个Scala程序都默认import一个Predef对象，该对象定义了一些原始类型做为类型类型的别名。数值类型和布尔型有标准的Scala类。String类型与宿主系统的String类型一致。在Java环境下，Predef包括以下类型绑定：
+
+    type byte       = scala.Byte
+    type short      = scala.Short
+    type char       = scala.Char
+    type int        = scala.Int
+    type long       = scala.Long
+    type float      = scala.Float
+    type double     = scala.Double
+    type Boolean    = scala.Boolean
+    type String     = java.lang.String
+
+##3.3.非值类型
+
+以下类型并不表示值的集合，也并不显式地出现在程序中。它们只以已定义标识符的内部类型而引入。
+
+###3.3.1.方法类型
+
+方法类型在内部表示为(Ts)U, (Ts)是一个类型序列(T1,...,Tn) n >= 0, U是一个（值或者方法）类型。这个类型表示一个命名的方法，其参数的类型是T1,...,Tn，返回结果的类型是U。
+
+方法类型是右结合的，(Ts1)(Ts2)U被处理的方式是(Ts1)((Ts2)U)。
+
+示例：
+
+    def a: Int
+    def b (x: Int): Boolean
+    def c (x: Int) (y: String, z: String): String
+
+###3.3.2.多态方法类型
+
+多态方法类型在内部表示为[tps]T, [tps]是类型参数部分[a1 >: L1 <: U1,...,an >: Ln <: Un], n >= 0, T是一个（值或方法）类型。该类型表示一个以S1,...,Sn为类型参量并产生类型为T的结果的命名方法，参数类型S1,...,Sn与下界L1,...,Ln和上界U1,...,Un一致。
+
+示例：
+
+    def empty[A]: List[A]
+    def union[A <: Comparable[A]] (x: Set[A], xs: Set[A]): Set[A]
+    产生如下类型:
+    empty: [A >: Nothing <: Any] List[A]
+    union: [A >: Nothing <: Comparable[A]] (x: Set[A], xs: Set[A]) Set[A]
+
+###3.3.3.类型构造器
+
+类型构造器在内部的表示方法类似于多态方法类型。[+/- a1 >: L1 <: U1,...,+/-an >: Ln <: Un] T表示一个期望是类型构造器参数或有对应类型参数子句的抽象类型构造器绑定的类型。
+
+示例:以下是类Iterable[+X]的片段：
+
+    trait Iterable[+X] {
+        def flatMap[newType[+X]<:Iterabe[X], S](f: X => newType[S]): newType[S]
+    }
+    从概念上来讲，类型构造器Iterable是匿名类型[+X] Iterable[X]的名称，在flatMap中传递给newType类型构造器参数。
+
+##3.4.基本类型和成员定义
+
+类成员的类型取决于成员被引用的方式。主要有三个概念：
+
+1. 类型 T 的基本类型集合
+2. 从前缀类型 S 中可见的类 C 中的类型 T
+3. 类型 T 的成员绑定集合
+
+##3.5.类型间的关系
+
+1. 类型恒等   T 恒等 U T和U可以在任何情况下互相替换
+2. 一致      T <: U 类型T与类型U一致
+
+#4.基本声明与定义
+
+##4.3.类型声明与类型别名
+
+##4.4.类型参数
+
+##4.5.差异标注
+
+##4.6.函数声明与定义
+
+###4.6.1.叫名参数
+
+语法：
+
+    ParamType   ::= '=>' Type
+
+值参数类型可以有前缀 =>，例如： x: => T。这样一个参数的类型就是无参方法类型 => T。这表明对应的参数并没有在函数应用处求值，而是在函数中每次使用时才求值。也就是该参数以叫名的方式求值。
+
+###4.6.2.重复参数
+
+语法：
+
+    ParamType   ::= Type '*'
+
+###4.6.3.过程
+
+语法：
+
+    FunDcl  ::= FunSig
+    FunDef  ::= FunSig[nl] '{'Block'}'
+
+过程有特殊语法，例如，返回Unit值{}的函数。过程声明只是返回类型被忽略的函数声明。返回类型自动定义为Unit类型。例如def f(ps)等价于def f(ps):Unit。
+
+###4.6.4.方法返回类型推断
+
+##4.7.Import子句
+
+#5.类与对象
+
+语法：
+
+    TmplDef ::= ['case'] 'class' ClassDef
+            | ['case'] 'object' ObjectDef
+            | 'trait' TraitDef
+
+##5.1.模板
+
+    ClassTemplate   ::= [EarlyDefs] ClassParents [TemplateBody]
+    TraitTemplate   ::= [EarlyDefs] TraitParents [TemplateBody]
+    ClassParents    ::= Constr {'with' AnnotType}
+    TraitParents    ::= AnnotType {'with' AnnotType}
+    TemplateBody    ::= [nl] '{' [SelfType] TemplateStat {semi TemplateStat} '}'
+    SelfType        ::= id [':' Type] '=>'
+                    | this ':' Type '=>'
+###5.1.1.构造器调用
+
+###5.1.2.类的线性化
+
+###5.1.3.类成员
+
+###5.1.4.覆盖
+
+###5.1.5继承闭包
+
+###5.1.6前置定义
+
+##5.2.修饰符
+
+##5.3.类定义
+
+###5.3.2.Case类
+
+语法：
+
+    TmplDef ::= 'case' 'class' ClassDef
+
+如果一个类定义有case前缀，那么该类就被称为case类。
+
+case类中第一个参数段中的正式参数称为元素，对它们将作特殊处理。首先，该参数的值可以扩展为构造器模式的一个字段。其次，该参数默认添加 val 前缀，除非该参数已经有 var或val 修饰符。然后会针对该参数生成一个访问定义。
+
+case类定义c[tps](ps1)...(psn)有类参数tps和值参数ps，会自动生成一个扩展对象，定义如下：
+
+    object c {
+        def apply[tps](ps1)...(psn): c[tps] = new c[Ts](xs1)...(xsn)
+        def unapply[tps](x: c[tps]) = scala.Some(x.xs11,...,x.xs1k)
+    }
+
+###5.3.3.特征
+
+语法：
+
+    TmplDef             ::= 'trait' TraitDef
+    TraitDef            ::= id [TypeParamClause] TraitTemplateOpt
+    TraitTemplateOpt    ::= 'extend' TraitTemplate
+                        | [['extends'] TemplateBody]
+
+特征是那些要以混入的形式加入到其他类中的类。与通常的类不同，特征不能有构造器参数。且也不能有构造器参数传递给其父类。这些都是没必要的，因为特征在父类初始化后才进行初始化。
+
+##5.4.对象定义
+
+语法：
+
+    ObjectDef       ::= id ClassTemplate
+
+#6.表达式
+
+##6.1.表达式类型化
+
+##6.2.字面值
+
+##6.3.Null值
+
+##6.4.指示器
+
+##6.5.This和Super
+
+##6.6.函数应用
+
+##6.7.方法值
+
+##6.8.类型应用
+
+##6.9.元组
+
+##6.10.实例创建表达式
+
+##6.11.代码块
+
+##6.12.前缀，中缀及后缀运算
+
+##6.13.类型化的表达式
+
+##6.14.标注表达式
+
+##6.15.赋值
+
+##6.16.条件表达式
+
+##6.17.While循环表达式
+
+##6.18.Do循环表达式
+
+##6.19.For语句段
+
+##6.20.Return表达式
+
+##6.21.Throw表达式
+
+##6.22.Try表达式
+
+##6.23.匿名函数
+
+##6.24.语句
+
+##6.25.隐式转换
+
+#7.隐含参数和视图
+
+##7.1.implicit修饰符
+
+##7.2.隐含参数
+
+##7.3.视图
+
+##7.4.视图边界
+
+#8.模式匹配
+
+##8.1.模式
+
+##8.2.类型模式
+
+##8.3.模式中的类型参数推断
+
+##8.4.模式匹配表达式
+
+##8.5.模式匹配匿名函数
+
+#9.顶级定义
+
+##9.1.编译单元
+
+##9.2.打包
+
+##9.3.包引用
+
+##9.4.程序
+
+#10.XML表达式与模式
+
+##10.1.XML表达式
+
+##10.2.XML模式
+
+#11.用户定义的标注
+
+#12.Scala标准库
+
+##12.1.根类
+
+##12.2.值类
+
+##12.3.标准引用类
+
+##12.4.Node类
+
+##12.5.Predef对象
+
+##12.6.
